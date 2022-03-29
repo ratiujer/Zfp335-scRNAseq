@@ -288,8 +288,11 @@ ZfpNegApop.Markers.ALRA[['dPct']]<-ZfpNegApop.Markers.ALRA$pct.1 - ZfpNegApop.Ma
 
 
 #### Start unbiased pathway analysis using SingleCellSignatureExplorer to compute cell-by-cell geneset scores using the reactome pathway database
+library(nichenetr)
+library(tidyverse)
 counts<-t(as.matrix(truMutDN4@assays$RNA@data))
-colnames(counts)<-toupper(colnames(counts))
+colnames(counts)<- counts %>% colnames() %>% convert_mouse_to_human_symbols()
+counts<- counts %>% .[!is.na(rownames(counts)), !is.na(colnames(counts))]
 head(colnames(counts))
 write.table(counts,'tab.tsv',sep = "\t", quote = F)
 
