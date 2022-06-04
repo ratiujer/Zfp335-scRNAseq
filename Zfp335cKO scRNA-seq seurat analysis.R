@@ -66,13 +66,18 @@ dn4.int.reg<-FindClusters(dn4.int.reg,resolution = 0.5)
 dn4.int.reg<-RunUMAP(dn4.int.reg,dims=1:40)
 DimPlot(dn4.int.reg, label=T, label.size = 5, label.box = T)
 
+new.ids<-c('DN4_1','DN4_2','Mat_1','DN4_3','Mat_2','DN4_4','gd17','Mat_3','gd1','DN4_5')
+names(new.ids)<-levels(dn4.int.reg)
+dn4.int.reg<-RenameIdents(dn4.int.reg,new.ids)
+dn4.int.reg[['cellType']]<-Idents(dn4.int.reg)
+
 markers<-FindAllMarkers(dn4.int.reg,assay = 'RNA')
 
-DotPlot(full,assay = 'RNA',c('Ptcra','Mki67','Cdk1','Rag1','Cd8b1','Cd8a','Cd4','Trbc1','Trac','Trdc','Tcrg-C1','Tcrg-C2','Tcrg-C4','Sox13','Rorc','Maf','Nkg7','Il2rb','S1pr1','Il7r'), cols = 'RdYlBu', col.max = 0.8,scale.by = 'radius',cluster.idents = T, dot.scale = 10, dot.min = 0.1)+RotatedAxis()
+DotPlot(dn4.int.reg,assay = 'RNA',c('Ptcra','Mki67','Cdk1','Rag1','Cd8b1','Cd8a','Cd4','Trbc1','Trac','Trdc','Tcrg-C1','Tcrg-C2','Tcrg-C4','Sox13','Rorc','Maf','Nkg7','Il2rb','S1pr1','Il7r'), cols = 'RdYlBu', col.max = 0.8,scale.by = 'radius',cluster.idents = T, dot.scale = 10, dot.min = 0.1)+RotatedAxis()
 
 ## Remove maturing ab and gd T cells to analyze only DN4 cells
 
-dn4<-susbet(dn4.int.reg, idents=c(0,1,3,5,9))
+dn4<-susbet(dn4.int.reg, idents=c('DN4_1','DN4_2','DN4_3','DN4_4','DN4_5'))
 
 DefaultAssay(dn4)<-'RNA'
 Idents(dn4)<-dn4$geno
@@ -317,4 +322,61 @@ FeaturePlot(truMutDN4,'REACTOME-IRF3-MEDIATED-ACTIVATION-OF-TYPE-1-IFN', pt.size
 ### Make violin plots for STING-activated pro-apoptotic Bcl2 genes, recolored violins in inkscape
 
 VlnPlot(truMutDN4,c('Bbc3','Pmaip1','Bcl2l11','Bax'), pt.size = 0, stack = T)+NoLegend()
+
+##### Additional analyses for revised manuscript
+
+## Make new violin plot for Fig 4E 
+
+VlnPlot(dn4.int.reg, c('Nr4a1','Cd69','Pdcd1','Egr1','Cd2','Itm2a','Cd24a'), pt.size=0, stack=T, flip=T, group.by='cellType', fill.by='ident')+NoLegend()
+
+#### Make violin plots of IFN-I signaling and mTOR singaling gene signatures for 'true' mutant DN4 data
+
+VlnPlot(truMutDN4, c('REACTOME-INTERFERON-ALPHA-BETA-SIGNALING','REACTOME-MTOR-SIGNALLING'), pt.size=0, group.by='seurat_clusters', split.by='geno', split.plot=T, cols=c('grey50','red'))
+
+#### Compare signature scores between genotypes within each cluster
+
+truMutDN4[['genoCT']]<-paste(truMutDN4$geno, truMutDN4$seurat_clusters, sep='_')
+Idents(truMutDN4)<-truMutDN4$genoCT
+
+sigs<-c('REACTOME-INTERFERON-ALPHA-BETA-SIGNALING','REACTOME-MTOR-SIGNALLING')
+
+FindMarkers(truMutDN4, ident.1='Zfp335cKO_0', ident.2='WT_0', features=sigs, assay='reactome, logfc.threshold=0)
+#                                                p_val  avg_log2FC pct.1 pct.2  p_val_adj
+#REACTOME-INTERFERON-ALPHA-BETA-SIGNALING 1.313689e-05 0.018347257     1     1 0.01998121
+#REACTOME-MTOR-SIGNALLING                 4.158618e-02 0.007083467     1     1 1.00000000
+
+FindMarkers(truMutDN4, ident.1='Zfp335cKO_1', ident.2='WT_1', features=sigs, assay='reactome, logfc.threshold=0)
+#                                               p_val    avg_log2FC pct.1 pct.2 p_val_adj
+#REACTOME-INTERFERON-ALPHA-BETA-SIGNALING 0.000982289  0.0213752721     1     1         1
+#REACTOME-MTOR-SIGNALLING                 0.999092070 -0.0002743283     1     1         1
+
+FindMarkers(truMutDN4, ident.1='Zfp335cKO_2', ident.2='WT_2', features=sigs, assay='reactome, logfc.threshold=0)
+#                                              p_val avg_log2FC pct.1 pct.2 p_val_adj
+#REACTOME-MTOR-SIGNALLING                 0.07414677 0.01237910     1     1         1
+#REACTOME-INTERFERON-ALPHA-BETA-SIGNALING 0.10644527 0.01666793     1     1         1
+
+FindMarkers(truMutDN4, ident.1='Zfp335cKO_3', ident.2='WT_3', features=sigs, assay='reactome, logfc.threshold=0)
+#                                             p_val  avg_log2FC pct.1 pct.2 p_val_adj
+#REACTOME-INTERFERON-ALPHA-BETA-SIGNALING 0.2200214  0.01437493     1     1         1
+#REACTOME-MTOR-SIGNALLING                 0.5617761 -0.00906888     1     1         1
+
+FindMarkers(truMutDN4, ident.1='Zfp335cKO_4', ident.2='WT_4', features=sigs, assay='reactome, logfc.threshold=0)
+#Error in ValidateCellGroups(object = object, cells.1 = cells.1, cells.2 = cells.2,  : 
+#  Cell group 2 has fewer than 3 cells
+
+FindMarkers(truMutDN4, ident.1='Zfp335cKO_5', ident.2='WT_5', features=sigs, assay='reactome, logfc.threshold=0)
+#                                              p_val   avg_log2FC pct.1 pct.2 p_val_adj
+#REACTOME-INTERFERON-ALPHA-BETA-SIGNALING 0.01422043 0.0334002745     1     1         1
+#REACTOME-MTOR-SIGNALLING                 0.40207696 0.0007438672     1     1         1
+
+FindMarkers(truMutDN4, ident.1='Zfp335cKO_6', ident.2='WT_6', features=sigs, assay='reactome, logfc.threshold=0)
+#                                             p_val avg_log2FC pct.1 pct.2 p_val_adj
+#REACTOME-MTOR-SIGNALLING                 0.1815682 0.04857284     1     1         1
+#REACTOME-INTERFERON-ALPHA-BETA-SIGNALING 0.3477086 0.03990863     1     1         1
+
+FindMarkers(truMutDN4, ident.1='Zfp335cKO_7', ident.2='WT_7', features=sigs, assay='reactome, logfc.threshold=0)
+#                                              p_val  avg_log2FC pct.1 pct.2 p_val_adj
+#REACTOME-INTERFERON-ALPHA-BETA-SIGNALING 0.03617595  0.04672645     1     1         1
+#REACTOME-MTOR-SIGNALLING                 0.81810777 -0.00805391     1     1         1
+
 
