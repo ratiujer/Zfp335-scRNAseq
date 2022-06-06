@@ -379,4 +379,83 @@ FindMarkers(truMutDN4, ident.1='Zfp335cKO_7', ident.2='WT_7', features=sigs, ass
 #REACTOME-INTERFERON-ALPHA-BETA-SIGNALING 0.03617595  0.04672645     1     1         1
 #REACTOME-MTOR-SIGNALLING                 0.81810777 -0.00805391     1     1         1
 
+### Make violion plot of reactome apoptosis gene signature
 
+VlnPlot(truMutDN4, 'REACTOME-APOPTOSIS', group.by='seurat_clusters', split.by='geno', split.plot=T, pt.size=0, assay='reactome', cols=c('grey50', 'red'))
+
+### Perform gene signature analysis on full dataset to examine interferon signaling gene signatures in Mat_1-3 populations
+
+counts<-t(as.matrix(dn4.int.reg@assays$RNA@data))
+colnames(counts)<- counts %>% colnames() %>% convert_mouse_to_human_symbols()
+counts<- counts %>% .[!is.na(rownames(counts)), !is.na(colnames(counts))]
+head(colnames(counts))
+write.table(counts,'tab2.tsv',sep = "\t", quote = F)
+
+### Performed gene signature scoring using SingleCellSignatureExplorer with the full reactome gene set database
+
+scores<-read.csv('C2_CP_REACTOME_tab2.tsv',sep="\t", row.names = 1)
+
+## Add scores to seurat object as an assay
+
+dn4.int.reg[['reactome']]<-CreateAssayObject(data=t(scores))
+
+## Make violin plots for interferon signaling gene signatures
+
+VlnPlot(dn4.int.reg, c('REACTOME-INTEFERON-ALPHA-BETA-SIGNALING','REACTOME-INTERFERON-GAMMA-SIGNALING'), group.by='cellType', split.by='geno', split.plot=T, pt.size=0, cols=c('grey50','red'))
+
+### Compare interferon signaling gene signatures between genotypes within each cell type cluster identified
+
+sigs<-c('REACTOME-INTERFERON-ALPHA-BETA-SIGNALING','REACTOME-INTERFERON-GAMMA-SIGNALING')
+
+FindMarkers(dn4.int.reg, ident.1='Zfp335cKO_DN4_1', ident.2='WT_DN4_1', assay='reactome', features=sigs, logfc.threshold=0)
+#                                             p_val  avg_log2FC pct.1 pct.2 p_val_adj
+#REACTOME-INTERFERON-ALPHA-BETA-SIGNALING 0.2622596 0.007480944 0.466 0.448         1
+
+FindMarkers(dn4.int.reg, ident.1='Zfp335cKO_DN4_2', ident.2='WT_DN4_2', assay='reactome', features=sigs, logfc.threshold=0)
+#                                             p_val  avg_log2FC pct.1 pct.2 p_val_adj
+#REACTOME-INTERFERON-GAMMA-SIGNALING      0.4093216 0.001130272 0.117 0.106         1
+#REACTOME-INTERFERON-ALPHA-BETA-SIGNALING 0.8584727 0.005648387 0.555 0.569         1
+
+FindMarkers(dn4.int.reg, ident.1='Zfp335cKO_DN4_3', ident.2='WT_DN4_3', assay='reactome', features=sigs, logfc.threshold=0)
+#                                             p_val avg_log2FC pct.1 pct.2 p_val_adj
+#REACTOME-INTERFERON-ALPHA-BETA-SIGNALING 0.1244742 0.02837042 0.479 0.460         1
+#REACTOME-INTERFERON-GAMMA-SIGNALING      0.6333545 0.01871922 0.172 0.149         1
+
+FindMarkers(dn4.int.reg, ident.1='Zfp335cKO_DN4_4', ident.2='WT_DN4_4', assay='reactome', features=sigs, logfc.threshold=0)
+#                                              p_val   avg_log2FC pct.1 pct.2 p_val_adj
+#REACTOME-INTERFERON-GAMMA-SIGNALING      0.09154094 -0.011959591 0.224 0.239         1
+#REACTOME-INTERFERON-ALPHA-BETA-SIGNALING 0.72541689  0.002530596 0.583 0.595         1
+
+FindMarkers(dn4.int.reg, ident.1='Zfp335cKO_DN4_5', ident.2='WT_DN4_5', assay='reactome', features=sigs, logfc.threshold=0)
+#                                             p_val  avg_log2FC pct.1 pct.2 p_val_adj
+#REACTOME-INTERFERON-GAMMA-SIGNALING      0.2503684  0.07294118 0.667 0.662         1
+#REACTOME-INTERFERON-ALPHA-BETA-SIGNALING 0.4949298 -0.01474617 0.772 0.846         1
+
+FindMarkers(dn4.int.reg, ident.1='Zfp335cKO_Mat_1', ident.2='WT_Mat_1', assay='reactome', features=sigs, logfc.threshold=0)
+#                                                p_val avg_log2FC pct.1 pct.2    p_val_adj
+#REACTOME-INTERFERON-ALPHA-BETA-SIGNALING 9.162701e-09 0.08977430 0.914 0.892 1.277281e-05
+#REACTOME-INTERFERON-GAMMA-SIGNALING      6.122626e-08 0.05773676 0.849 0.794 8.534941e-05
+
+FindMarkers(dn4.int.reg, ident.1='Zfp335cKO_Mat_2', ident.2='WT_Mat_2', assay='reactome', features=sigs, logfc.threshold=0)
+#                                                p_val avg_log2FC pct.1 pct.2    p_val_adj
+#REACTOME-INTERFERON-ALPHA-BETA-SIGNALING 1.150497e-07 0.11268580 0.876 0.836 0.0001603793
+#REACTOME-INTERFERON-GAMMA-SIGNALING      3.798868e-05 0.06223676 0.785 0.734 0.0529562230
+
+FindMarkers(dn4.int.reg, ident.1='Zfp335cKO_Mat_3', ident.2='WT_Mat_3', assay='reactome', features=sigs, logfc.threshold=0)
+#                                               p_val avg_log2FC pct.1 pct.2 p_val_adj
+#REACTOME-INTERFERON-ALPHA-BETA-SIGNALING 0.005467461 0.07263657 0.823 0.738         1
+#REACTOME-INTERFERON-GAMMA-SIGNALING      0.025706114 0.02297752 0.641 0.574         1
+
+FindMarkers(dn4.int.reg, ident.1='Zfp335cKO_gd1', ident.2='WT_gd1', assay='reactome', features=sigs, logfc.threshold=0)
+#                                                p_val avg_log2FC pct.1 pct.2    p_val_adj
+#REACTOME-INTERFERON-GAMMA-SIGNALING      1.787615e-09  0.1787343 0.993 0.973 2.491936e-06
+#REACTOME-INTERFERON-ALPHA-BETA-SIGNALING 3.057836e-03  0.1619523 1.000 0.982 1.000000e+00
+
+FindMarkers(dn4.int.reg, ident.1='Zfp335cKO_gd17', ident.2='WT_gd17', assay='reactome', features=sigs, logfc.threshold=0)
+#                                               p_val avg_log2FC pct.1 pct.2    p_val_adj
+#REACTOME-INTERFERON-ALPHA-BETA-SIGNALING 2.79426e-07  0.1403639 0.900 0.785 0.0003895198
+#REACTOME-INTERFERON-GAMMA-SIGNALING      1.13454e-03  0.0722843 0.954 0.918 1.0000000000
+            
+            
+            
+            
